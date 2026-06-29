@@ -266,7 +266,7 @@ h1 {
 }
 
 .bracket {
-  --match-h: 12rem;
+  --match-h: 9.5rem;
   --row-h: calc(var(--match-h) / 2);
   display: grid;
   grid-template-columns: repeat(5, minmax(250px, 1fr));
@@ -302,8 +302,8 @@ h1 {
 .match-card {
   --connector-color: rgba(160, 178, 164, 0.55);
   display: grid;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: 0.3rem;
+  padding: 0.55rem;
   box-shadow: none;
   grid-row: var(--match-row) / span var(--match-span);
   min-height: var(--match-h);
@@ -314,36 +314,36 @@ h1 {
 
 .match-card.has-penalties {
   z-index: 2;
-  padding: 0.75rem;
-  gap: 0.5rem;
+  padding: 0.55rem;
+  gap: 0.35rem;
 }
 
 .match-card.has-penalties .flag {
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
 .match-card.has-penalties .code {
-  font-size: 0.65rem;
-  padding: 0.1rem 0.25rem;
+  font-size: 0.6rem;
+  padding: 0.08rem 0.2rem;
 }
 
 .match-card.has-penalties .team-row {
-  gap: 0.4rem;
-  grid-template-columns: minmax(0, 1fr) 3.5rem;
+  gap: 0.35rem;
+  grid-template-columns: minmax(0, 1fr) 3rem;
 }
 
 .match-card.has-penalties .score-input {
-  font-size: 0.85rem;
-  padding: 0.4rem;
+  font-size: 0.8rem;
+  padding: 0.3rem;
 }
 
 .match-card.has-penalties .match-header {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
 }
 
 .match-card.has-penalties .match-status {
-  padding: 0.5rem;
-  font-size: 0.85rem;
+  padding: 0.35rem;
+  font-size: 0.78rem;
 }
 
 @media (min-width: 821px) {
@@ -396,9 +396,9 @@ h1 {
 .match-header {
   display: flex;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.5rem;
   color: var(--muted);
-  font-size: 0.86rem;
+  font-size: 0.72rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -406,28 +406,28 @@ h1 {
 
 .team-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 4.25rem;
+  grid-template-columns: minmax(0, 1fr) 3.5rem;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.5rem;
 }
 
 .team,
 .empty-team {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.4rem;
   min-width: 0;
 }
 
 .flag {
-  font-size: 1.35rem;
+  font-size: 1rem;
 }
 
 .code {
-  border-radius: 8px;
-  padding: 0.15rem 0.3rem;
+  border-radius: 6px;
+  padding: 0.1rem 0.25rem;
   background: var(--soft);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-weight: 900;
 }
 
@@ -446,14 +446,17 @@ h1 {
 .score-input {
   text-align: center;
   font-weight: 900;
+  padding: 0.25rem;
+  border-radius: 10px;
 }
 
 .match-status {
-  border-radius: 14px;
-  padding: 0.7rem;
+  border-radius: 10px;
+  padding: 0.3rem;
   color: var(--muted);
   background: #f1f4ef;
   font-weight: 750;
+  font-size: 0.82rem;
 }
 
 .match-status.winner {
@@ -463,19 +466,25 @@ h1 {
 
 .penalties {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .penalties p {
   margin: 0;
   color: var(--muted);
   font-weight: 800;
+  font-size: 0.78rem;
 }
 
 .penalty-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.35rem;
+}
+
+.penalty-actions button {
+  padding: 0.4rem 0.65rem;
+  font-size: 0.8rem;
 }
 
 .penalty-actions button.selected {
@@ -518,6 +527,6 @@ h1 {
   .match-card {
     grid-row: auto !important;
     height: auto;
-    min-height: 11rem;
+    min-height: 8.5rem;
   }
 }

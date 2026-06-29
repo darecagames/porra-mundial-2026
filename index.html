@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Porra Mundial 2026</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="hero__content">
+      <p class="eyebrow">Porra familiar</p>
+      <h1>Porra Mundial 2026</h1>
+      <p class="intro">Completa el cuadro eliminatorio, guarda tu predicción y compártela por WhatsApp o email.</p>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section class="panel controls" aria-labelledby="controls-title">
+      <div class="controls__top">
+        <div>
+          <h2 id="controls-title">Tu porra</h2>
+          <p id="sourceMessage" class="source-message" hidden></p>
+        </div>
+        <div id="statusBadge" class="status-badge">Editable</div>
+      </div>
+
+      <label class="name-field" for="participantName">
+        <span>Nombre del participante</span>
+        <input id="participantName" type="text" autocomplete="name" placeholder="Ej. Juan">
+      </label>
+
+      <div class="actions" aria-label="Acciones de la porra">
+        <button id="saveBtn" type="button">Guardar porra</button>
+        <button id="loadBtn" type="button">Cargar porra</button>
+        <button id="finalizeBtn" type="button" class="primary">Finalizar y enviar porra</button>
+        <button id="copyLinkBtn" type="button">Copiar enlace final</button>
+        <button id="copySummaryBtn" type="button">Copiar resumen</button>
+        <button id="whatsappBtn" type="button">Enviar por WhatsApp</button>
+        <button id="emailBtn" type="button">Enviar por email</button>
+        <button id="newBtn" type="button" class="secondary">Crear nueva porra</button>
+      </div>
+
+      <p id="appMessage" class="app-message" role="status" aria-live="polite"></p>
+    </section>
+
+    <section id="summarySection" class="panel summary-panel" hidden></section>
+
+    <section id="championSection" class="champion-card" aria-live="polite"></section>
+
+    <section class="bracket-wrap" aria-label="Cuadro eliminatorio">
+      <div id="bracket" class="bracket"></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

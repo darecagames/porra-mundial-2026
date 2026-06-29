@@ -137,7 +137,6 @@ function bindEvents() {
   els.participantName.addEventListener("input", () => {
     state.participantName = els.participantName.value;
     autoSaveIfAllowed();
-    renderHeader();
   });
 
   els.loadBtn.addEventListener("click", loadFromLocalStorage);
@@ -155,7 +154,9 @@ function renderApp() {
 }
 
 function renderHeader() {
-  els.participantName.value = state.participantName || "";
+  if (els.participantName.value !== (state.participantName || "")) {
+    els.participantName.value = state.participantName || "";
+  }
   els.participantName.disabled = state.readonly;
 
   if (state.readonly) {
@@ -246,11 +247,13 @@ function renderTeamRow(match, side, disabled) {
   const teamId = side === "A" ? match.teamA : match.teamB;
   const score = side === "A" ? match.scoreA : match.scoreB;
   const teamName = teamId && teams[teamId] ? teams[teamId].name : "equipo pendiente";
+  const inputId = `score-${match.id}-${side}`;
 
   return `
     <label class="team-row">
       ${renderTeam(teamId)}
       <input
+        id="${inputId}"
         class="score-input"
         type="number"
         inputmode="numeric"
@@ -345,7 +348,7 @@ function handleScoreChange(matchId, teamSide, value) {
   const parsedValue = value === "" ? null : Number(value);
   if (parsedValue !== null && (!Number.isInteger(parsedValue) || parsedValue < 0 || parsedValue > 30)) {
     showMessage("Los goles deben ser numeros entre 0 y 30.", true);
-    renderApp();
+    renderWithFocusPreserved(renderApp);
     return;
   }
 
@@ -358,7 +361,7 @@ function handleScoreChange(matchId, teamSide, value) {
 
   recalculateBracket();
   autoSaveIfAllowed();
-  renderApp();
+  renderWithFocusPreserved(renderApp);
 }
 
 function handlePenaltyWinner(matchId, teamId) {
@@ -372,7 +375,44 @@ function handlePenaltyWinner(matchId, teamId) {
   match.penaltyWinner = teamId;
   recalculateBracket();
   autoSaveIfAllowed();
-  renderApp();
+  renderWithFocusPreserved(renderApp);
+}
+
+function renderWithFocusPreserved(renderFn) {
+  const active = document.activeElement;
+  const focusInfo =
+    active && active.id && active.tagName === "INPUT"
+      ? {
+          id: active.id,
+          selectionStart: active.selectionStart,
+          selectionEnd: active.selectionEnd
+        }
+      : null;
+  const scrollY = window.scrollY;
+
+  renderFn();
+
+  if (focusInfo) {
+    const next = document.getElementById(focusInfo.id);
+    if (next) {
+      next.focus({ preventScroll: true });
+      if (
+        focusInfo.selectionStart !== null &&
+        focusInfo.selectionStart !== undefined &&
+        typeof next.setSelectionRange === "function"
+      ) {
+        try {
+          next.setSelectionRange(focusInfo.selectionStart, focusInfo.selectionEnd);
+        } catch (error) {
+          // input type=number no soporta selectionRange en algunos navegadores
+        }
+      }
+    }
+  }
+
+  if (window.scrollY !== scrollY) {
+    window.scrollTo(0, scrollY);
+  }
 }
 
 function advanceWinner(matchId, winnerTeamId) {

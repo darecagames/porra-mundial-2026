@@ -497,7 +497,7 @@ function shouldShowPenaltyChoice(match) {
 
 function autoSaveIfAllowed() {
   if (loadedFromSharedUrl && state.readonly) return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(getShareableState()));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(getShareableState({ readonly: false, finalized: false })));
 }
 
 function loadFromLocalStorage() {
@@ -520,7 +520,10 @@ function readLocalStorageState() {
   if (!raw) return null;
 
   try {
-    return normalizeState(JSON.parse(raw));
+    const savedState = normalizeState(JSON.parse(raw));
+    savedState.finalized = false;
+    savedState.readonly = false;
+    return savedState;
   } catch (error) {
     return null;
   }
@@ -530,13 +533,13 @@ function readLocalStorageState() {
 // 6. Compartir
 // =============================================================
 
-function getShareableState() {
+function getShareableState(options = {}) {
   return {
     participantName: state.participantName,
     bracketVersion: BRACKET_VERSION,
     matches: cloneMatches(state.matches),
-    finalized: true,
-    readonly: true,
+    finalized: Boolean(options.finalized ?? state.finalized),
+    readonly: Boolean(options.readonly ?? state.readonly),
     champion: getChampion()
   };
 }
@@ -558,7 +561,7 @@ function loadStateFromUrl() {
 }
 
 function createShareLink() {
-  const json = JSON.stringify(getShareableState());
+  const json = JSON.stringify(getShareableState({ readonly: true, finalized: true }));
   const encoded = fromBase64(btoa(unescape(encodeURIComponent(json))));
   const url = new URL(window.location.href);
   url.search = "";

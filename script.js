@@ -100,15 +100,8 @@ function initApp() {
   els.appMessage = document.getElementById("appMessage");
   els.bracket = document.getElementById("bracket");
   els.championSection = document.getElementById("championSection");
-  els.saveBtn = document.getElementById("saveBtn");
   els.loadBtn = document.getElementById("loadBtn");
-  els.finalizeBtn = document.getElementById("finalizeBtn");
-  els.copyLinkBtn = document.getElementById("copyLinkBtn");
-  els.copySummaryBtn = document.getElementById("copySummaryBtn");
-  els.whatsappBtn = document.getElementById("whatsappBtn");
   els.emailBtn = document.getElementById("emailBtn");
-  els.newBtn = document.getElementById("newBtn");
-  els.summarySection = document.getElementById("summarySection");
 
   const urlState = loadStateFromUrl();
   if (urlState) {
@@ -147,14 +140,8 @@ function bindEvents() {
     renderHeader();
   });
 
-  els.saveBtn.addEventListener("click", saveToLocalStorage);
   els.loadBtn.addEventListener("click", loadFromLocalStorage);
-  els.finalizeBtn.addEventListener("click", finalizePrediction);
-  els.copyLinkBtn.addEventListener("click", copyShareLink);
-  els.copySummaryBtn.addEventListener("click", copyPredictionSummary);
-  els.whatsappBtn.addEventListener("click", sendByWhatsApp);
   els.emailBtn.addEventListener("click", sendByEmail);
-  els.newBtn.addEventListener("click", createNewPrediction);
 }
 
 // =============================================================
@@ -163,7 +150,6 @@ function bindEvents() {
 
 function renderApp() {
   renderHeader();
-  renderSummary();
   renderChampion();
   renderBracket();
 }
@@ -180,41 +166,7 @@ function renderHeader() {
     els.statusBadge.classList.remove("readonly");
   }
 
-  const canShare = state.readonly || state.finalized;
-  els.finalizeBtn.hidden = canShare;
-  els.copyLinkBtn.hidden = false;
-  els.copySummaryBtn.hidden = false;
-  els.whatsappBtn.hidden = false;
-  els.emailBtn.hidden = false;
-  els.copyLinkBtn.disabled = !canShare;
-  els.copySummaryBtn.disabled = !canShare;
-  els.whatsappBtn.disabled = !canShare;
-  els.emailBtn.disabled = !canShare;
-  els.saveBtn.disabled = false;
-}
-
-function renderSummary() {
-  const canShowSummary = state.readonly || state.finalized;
-  els.summarySection.hidden = !canShowSummary;
-  if (!canShowSummary) {
-    els.summarySection.innerHTML = "";
-    return;
-  }
-
-  const shareLink = createShareLink();
-  els.summarySection.innerHTML = `
-    <div class="summary-head">
-      <div>
-        <h2>Resumen para verificar</h2>
-        <p>Abre el enlace en cualquier navegador para cargar esta porra en modo solo lectura.</p>
-      </div>
-    </div>
-    <label class="share-link-field">
-      <span>Enlace de esta porra</span>
-      <input type="text" value="${escapeHtml(shareLink)}" readonly onclick="this.select()">
-    </label>
-    <pre class="summary-text">${escapeHtml(getPredictionSummary())}</pre>
-  `;
+  els.emailBtn.disabled = state.readonly;
 }
 
 function renderBracket() {
@@ -486,24 +438,6 @@ function recalculateBracket() {
   state.champion = getChampion();
 }
 
-function clearDownstreamMatches(matchId) {
-  const match = getMatch(matchId);
-  if (!match || !match.nextMatchId) return;
-
-  const nextMatch = getMatch(match.nextMatchId);
-  if (!nextMatch) return;
-
-  nextMatch.scoreA = null;
-  nextMatch.scoreB = null;
-  nextMatch.winner = null;
-  nextMatch.penaltyWinner = null;
-  clearDownstreamMatches(nextMatch.id);
-}
-
-function isBracketComplete() {
-  return state.matches.every((match) => Boolean(getMatchWinner(match))) && Boolean(getChampion());
-}
-
 function getChampion() {
   const finalMatch = getMatch("final-1");
   return finalMatch ? getMatchWinner(finalMatch) : null;
@@ -521,14 +455,9 @@ function shouldShowPenaltyChoice(match) {
 // 5. Persistencia
 // =============================================================
 
-function saveToLocalStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(getShareableState({ readonly: state.readonly })));
-  showMessage("Porra guardada en este dispositivo.");
-}
-
 function autoSaveIfAllowed() {
   if (loadedFromSharedUrl && state.readonly) return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(getShareableState({ readonly: state.readonly })));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(getShareableState()));
 }
 
 function loadFromLocalStorage() {
@@ -561,13 +490,13 @@ function readLocalStorageState() {
 // 6. Compartir
 // =============================================================
 
-function getShareableState(options = {}) {
+function getShareableState() {
   return {
     participantName: state.participantName,
     bracketVersion: BRACKET_VERSION,
     matches: cloneMatches(state.matches),
-    finalized: Boolean(state.finalized),
-    readonly: Boolean(options.readonly ?? state.readonly),
+    finalized: true,
+    readonly: true,
     champion: getChampion()
   };
 }
@@ -589,9 +518,7 @@ function loadStateFromUrl() {
 }
 
 function createShareLink() {
-  const shareState = getShareableState({ readonly: true });
-  shareState.finalized = true;
-  const json = JSON.stringify(shareState);
+  const json = JSON.stringify(getShareableState());
   const encoded = fromBase64(btoa(unescape(encodeURIComponent(json))));
   const url = new URL(window.location.href);
   url.search = "";
@@ -600,75 +527,11 @@ function createShareLink() {
   return url.toString();
 }
 
-async function copyShareLink() {
-  const link = createShareLink();
-
-  try {
-    await navigator.clipboard.writeText(link);
-    showMessage("Enlace final copiado al portapapeles.");
-  } catch (error) {
-    window.prompt("Copia este enlace:", link);
-  }
-}
-
-async function copyPredictionSummary() {
-  const summary = `${getPredictionSummary()}\n\nEnlace:\n${createShareLink()}`;
-
-  try {
-    await navigator.clipboard.writeText(summary);
-    showMessage("Resumen de la porra copiado al portapapeles.");
-  } catch (error) {
-    window.prompt("Copia este resumen:", summary);
-  }
-}
-
-function getPredictionSummary() {
-  const lines = [
-    `Porra Mundial 2026`,
-    `Participante: ${state.participantName || "Sin nombre"}`,
-    `Campeón: ${getTeamLabel(getChampion()) || "Pendiente"}`,
-    "",
-    "Resultados:"
-  ];
-
-  rounds.forEach((round) => {
-    lines.push("", round.name.toUpperCase());
-    state.matches
-      .filter((match) => match.round === round.id)
-      .forEach((match) => {
-        const teamA = getTeamLabel(match.teamA) || "Pendiente";
-        const teamB = getTeamLabel(match.teamB) || "Pendiente";
-        const scoreA = match.scoreA === null ? "-" : match.scoreA;
-        const scoreB = match.scoreB === null ? "-" : match.scoreB;
-        const winner = getTeamLabel(getMatchWinner(match)) || "Pendiente";
-        const penalties = match.penaltyWinner ? `, penaltis: ${getTeamLabel(match.penaltyWinner)}` : "";
-        lines.push(`${match.id}: ${teamA} ${scoreA}-${scoreB} ${teamB} | Ganador: ${winner}${penalties}`);
-      });
-  });
-
-  return lines.join("\n");
-}
-
-function getTeamLabel(teamId) {
-  if (!teamId || !teams[teamId]) return "";
-  const team = teams[teamId];
-  return `${team.flag} ${team.code}`;
-}
-
-function sendByWhatsApp() {
-  const link = createShareLink();
-  const name = state.participantName.trim();
-  const text = name
-    ? `Esta es la porra del Mundial 2026 de ${name}: ${link}`
-    : `Esta es mi porra del Mundial 2026: ${link}`;
-  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
-}
-
 function sendByEmail() {
   const link = createShareLink();
   const name = state.participantName.trim() || "Participante";
   const subject = `Porra Mundial 2026 - ${name}`;
-  const body = `Esta es mi porra del Mundial 2026:\n${link}\n\nResumen:\n${getPredictionSummary()}`;
+  const body = `Esta es mi porra del Mundial 2026:\n${link}`;
   window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
@@ -679,57 +542,6 @@ function toBase64(value) {
 
 function fromBase64(value) {
   return value.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-
-// =============================================================
-// 7. Finalizacion y modo solo lectura
-// =============================================================
-
-function finalizePrediction() {
-  if (!state.participantName.trim()) {
-    showMessage("Introduce tu nombre antes de finalizar la porra.", true);
-    return;
-  }
-
-  recalculateBracket();
-  if (!isBracketComplete()) {
-    showMessage("Todavia faltan partidos por completar antes de enviar la porra.", true);
-    renderApp();
-    return;
-  }
-
-  const confirmed = window.confirm("Una vez finalizada, la porra quedara bloqueada en este dispositivo. ¿Quieres continuar?");
-  if (!confirmed) return;
-
-  state.finalized = true;
-  setReadonlyMode(true);
-  saveToLocalStorage();
-  renderApp();
-  showMessage("Porra finalizada. Ya puedes copiar el enlace, enviarla por WhatsApp o enviarla por email.");
-}
-
-function setReadonlyMode(isReadonly) {
-  state.readonly = Boolean(isReadonly);
-}
-
-function resetBracket() {
-  state = createInitialState();
-  loadedFromSharedUrl = false;
-  hideSourceMessage();
-  renderApp();
-}
-
-function createNewPrediction() {
-  const confirmed = window.confirm("Esto borrara la porra guardada en este dispositivo. ¿Quieres continuar?");
-  if (!confirmed) return;
-
-  localStorage.removeItem(STORAGE_KEY);
-  const url = new URL(window.location.href);
-  url.searchParams.delete("data");
-  url.searchParams.delete("readonly");
-  window.history.replaceState({}, "", url.pathname + url.search + url.hash);
-  resetBracket();
-  showMessage("Nueva porra creada. Puedes empezar a editar.");
 }
 
 // =============================================================

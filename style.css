@@ -466,22 +466,31 @@ h1 {
   }
 
   .bracket-wrap {
+    display: block;
     overflow: visible;
+    margin-top: 1rem;
   }
 
   .bracket {
-    grid-template-columns: 1fr;
+    display: block;
     min-width: 0;
   }
 
+  .round-column {
+    display: block;
+    margin-bottom: 1.25rem;
+  }
+
   .round-matches {
+    display: block;
     grid-template-rows: none;
-    gap: 0.85rem;
   }
 
   .match-card {
+    display: grid;
     grid-row: auto !important;
     height: auto;
     min-height: 8.5rem;
+    margin-bottom: 0.85rem;
   }
 }
